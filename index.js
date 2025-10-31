@@ -16,8 +16,8 @@ app.get('/api/health', (_req, res) => {
 app.post('/api/leadsquared/lead', async (req, res) => {
   const { firstName, lastName, phone, email, message } = req.body || {};
 
-  if (!firstName || !lastName || !phone || !email) {
-    return res.status(400).json({ ok: false, error: 'Missing required fields' });
+  if (!firstName || !phone) {
+    return res.status(400).json({ ok: false, error: 'Missing required fields: firstName and phone are required' });
   }
 
   const accessKey = process.env.LSQ_ACCESS_KEY;
@@ -32,12 +32,21 @@ app.post('/api/leadsquared/lead', async (req, res) => {
 
   const payload = [
     { Attribute: 'FirstName', Value: firstName },
-    { Attribute: 'LastName', Value: lastName },
-    { Attribute: 'EmailAddress', Value: email },
     { Attribute: 'Phone', Value: phone },
-    { Attribute: 'Source', Value: 'Google ads' },
-    { Attribute: 'Notes', Value: message || '' }
+    { Attribute: 'Source', Value: 'Google ads' }
   ];
+
+  if (lastName && lastName.trim() !== '') {
+    payload.push({ Attribute: 'LastName', Value: lastName });
+  }
+
+  if (email && email.trim() !== '') {
+    payload.push({ Attribute: 'EmailAddress', Value: email });
+  }
+
+  if (message && message.trim() !== '') {
+    payload.push({ Attribute: 'Notes', Value: message });
+  }
 
   try {
     const lsqResp = await axios.post(url, payload, { headers: { 'Content-Type': 'application/json' } });
