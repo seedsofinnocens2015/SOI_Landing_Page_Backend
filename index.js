@@ -14,7 +14,16 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.post('/api/leadsquared/lead', async (req, res) => {
-  const { firstName, lastName, phone, email, message } = req.body || {};
+  const {
+    firstName,
+    lastName,
+    phone,
+    email,
+    message,
+    source,
+    leadSource,
+    location
+  } = req.body || {};
 
   if (!firstName || !phone) {
     return res.status(400).json({ ok: false, error: 'Missing required fields: firstName and phone are required' });
@@ -30,10 +39,13 @@ app.post('/api/leadsquared/lead', async (req, res) => {
 
   const url = `${baseUrl}/v2/LeadManagement.svc/Lead.Create?accessKey=${encodeURIComponent(accessKey)}&secretKey=${encodeURIComponent(secretKey)}`;
 
+  const resolvedSource =
+    (leadSource || source || location || '').toString().trim() || 'Google ads';
+
   const payload = [
     { Attribute: 'FirstName', Value: firstName },
     { Attribute: 'Phone', Value: phone },
-    { Attribute: 'Source', Value: 'Google ads' }
+    { Attribute: 'Source', Value: resolvedSource }
   ];
 
   if (lastName && lastName.trim() !== '') {
